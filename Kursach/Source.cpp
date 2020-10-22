@@ -59,7 +59,7 @@ int main()
 				adminMenu();
 				break;
 			case 2:
-				//userMenu();
+				userMenu();
 				break;
 			default:
 				return 0;
@@ -90,39 +90,59 @@ void adminAuthorization()
 	}
 }
 
-//void userMenu()
-//{
-//	std::cout <<
-//		"1. Просмотреть все автобусные рейсы" << std::endl <<
-//		"2. Искать рейсы по месту назначения" << std::endl <<
-//		"3. Искать рейсы по врмени" << std::endl <<
-//		"4. Выход в основное меню" << std::endl;
-//
-//	int choice;
-//	std::cin >> choice;
-//	switch (choice)
-//	{
-//		case 1:
-//			loadStruct(dataFile);
-//			break;
-//		case 2:
-//			char city[20];
-//			std::cout << "Введите город: " << std::endl;
-//			std::cin >> city;
-//
-//			break;
-//		case 3:
-//			break;
-//		default:
-//			break;
-//	}
-//}
+void userMenu()
+{
+	while (true)
+	{
+		std::cout <<
+			"1. Просмотреть все автобусные рейсы" << std::endl <<
+			"2. Искать рейсы по месту назначения" << std::endl <<
+			"3. Искать рейсы по времени отправления" << std::endl <<
+			"4. Выход в основное меню" << std::endl;
 
+		int choice;
+		std::cin >> choice;
+		system("CLS");
+		switch (choice)
+		{
+		case 1:
+			loadStruct(dataFile);
+			break;
 
+		case 2:
+			char city[20];
+			std::cout << "Введите город: " << std::endl;
+			std::cin >> city;
+			for (int i = 0; i < tripAmount; i++)
+			{
+				if (!strcmp(city, trip[i].destination))
+				{
+					std::cout << "Найден рейс с номером: " << i + 1 << std::endl;
+				}
+			}
+			break;
+
+		case 3:
+			char time[20];
+			std::cout << "Введите время отправления: " << std::endl;
+			std::cin >> time;
+			for (int i = 0; i < tripAmount; i++)
+			{
+				if (!strcmp(time, trip[i].departureTime))
+				{
+					std::cout << "Найден рейс с номером: " << i + 1 << std::endl;
+				}
+			}
+			break;
+
+		default:
+			return;
+		}
+	}
+}
 
 void adminMenu()
 {
-	
 	int choice;
 	while (true)
 	{
@@ -174,7 +194,7 @@ void adminMenu()
 					std::cout << "Таких рейсов не существует" << std::endl;
 					break;
 				}
-				
+				//...
 				break;
 			case 5:
 				loadStruct(dataFile);
@@ -184,11 +204,12 @@ void adminMenu()
 				break;
 			case 7:
 				break;
+
+			default:
+				return;
 		}
 	}
 }
-
-
 
 int saveStruct(const char* filename, struct busTimetable* trip, int n)
 {
