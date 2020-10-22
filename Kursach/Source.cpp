@@ -26,21 +26,56 @@ struct busTimetable
 	char departureTime[20];
 	char arrivalTime[20];
 };
-struct busTimetable trip[10] = { 77, "green", "big", "Minsk", "22:10", "12:44", 312, "brown", "little", "Moscow", "23:28", "07:33" };
+//struct busTimetable trip[] = { 77, "green", "big", "Minsk", "22:10", "12:44", 312, "brown", "little", "Moscow", "23:28", "07:33" };
 
 
 //void printBestTrip();
 
+busTimetable* AddStruct(busTimetable* Obj, const int amount)
+{
+	if (amount == 0)
+	{
+		Obj = new busTimetable[amount + 1]; // выделение памяти для первой структуры
+	}
+	else
+	{
+		busTimetable* tempObj = new busTimetable[amount + 1];
+
+		for (int i = 0; i < amount; i++)
+		{
+			tempObj[i] = Obj[i]; // копируем во временный объект
+		}
+		delete[] Obj;
+
+		Obj = tempObj;
+	}
+	return Obj;
+}
+
+void setData(busTimetable* trip, const int amount)
+{
+	std::cout << "Введите номер рейса" << std::endl;
+	std::cin >> trip[amount].numberBusTrip;
+	std::cout << "Введите тип автобуса (цвет)" << std::endl;
+	std::cin >> trip[amount].type.colour;
+	std::cout << "Введите тип автобуса (размер)" << std::endl;
+	std::cin >> trip[amount].type.size;
+	std::cout << "Введите пункт назначения" << std::endl;
+	std::cin >> trip[amount].destination;
+	std::cout << "Введите время отправления" << std::endl;
+	std::cin >> trip[amount].departureTime;
+	std::cout << "Введите время прибытия" << std::endl;
+	std::cin >> trip[amount].arrivalTime;
+}
+
 const char* dataFile = "dataBusTimetable.txt";
+struct busTimetable* trip = 0;
+int tripAmount = 0;
 
 int main()
 {
 	setlocale(LC_ALL, "Russian");
 	
-	int n = sizeof(trip) / sizeof(trip[0]);
-	saveStruct(dataFile, trip, n);
-	
-
 	int choice;
 	while (true)
 	{
@@ -58,7 +93,7 @@ int main()
 				adminMenu();
 				break;
 			case 2:
-				userMenu();
+				//userMenu();
 				break;
 			default:
 				return 0;
@@ -89,33 +124,33 @@ void adminAuthorization()
 	}
 }
 
-void userMenu()
-{
-	std::cout <<
-		"1. Просмотреть все автобусные рейсы" << std::endl <<
-		"2. Искать рейсы по месту назначения" << std::endl <<
-		"3. Искать рейсы по врмени" << std::endl <<
-		"4. Выход в основное меню" << std::endl;
-
-	int choice;
-	std::cin >> choice;
-	switch (choice)
-	{
-		case 1:
-			loadStruct(dataFile);
-			break;
-		case 2:
-			char city[20];
-			std::cout << "Введите город: " << std::endl;
-			std::cin >> city;
-
-			break;
-		case 3:
-			break;
-		default:
-			break;
-	}
-}
+//void userMenu()
+//{
+//	std::cout <<
+//		"1. Просмотреть все автобусные рейсы" << std::endl <<
+//		"2. Искать рейсы по месту назначения" << std::endl <<
+//		"3. Искать рейсы по врмени" << std::endl <<
+//		"4. Выход в основное меню" << std::endl;
+//
+//	int choice;
+//	std::cin >> choice;
+//	switch (choice)
+//	{
+//		case 1:
+//			loadStruct(dataFile);
+//			break;
+//		case 2:
+//			char city[20];
+//			std::cout << "Введите город: " << std::endl;
+//			std::cin >> city;
+//
+//			break;
+//		case 3:
+//			break;
+//		default:
+//			break;
+//	}
+//}
 
 void adminMenu()
 {
@@ -148,25 +183,9 @@ void adminMenu()
 			}
 			break;
 		case 2:
-			n = sizeof(trip) / sizeof(trip[0]);
-
-			std::cout << "Введите номер рейса" << std::endl;
-			std::cin >> trip[n].numberBusTrip;
-			std::cout << "Введите тип автобуса (цвет)" << std::endl;
-			std::cin >> trip[n].type.colour;
-			std::cout << "Введите тип автобуса (размер)" << std::endl;
-			std::cin >> trip[n].type.size;
-			std::cout << "Введите пункт назначения" << std::endl;
-			std::cin >> trip[n].destination;
-			std::cout << "Введите время отправления" << std::endl;
-			std::cin >> trip[n].departureTime;
-			std::cout << "Введите время прибытия" << std::endl;
-			std::cin >> trip[n].arrivalTime;
-
-			n = sizeof(trip) / sizeof(trip[0]);
-
-			saveStruct(dataFile, trip, n + 1);
-
+			trip = AddStruct(trip, tripAmount);
+			setData(trip, tripAmount);
+			tripAmount++;
 			break;
 		case 3:
 			int whatChange;
@@ -227,14 +246,15 @@ void adminMenu()
 				loadStruct(dataFile);
 				break;
 			case 6:
-				n = sizeof(trip) / sizeof(trip[0]);
-				saveStruct(dataFile, trip, n);
+				saveStruct(dataFile, trip, tripAmount);
 				break;
 			case 7:
 				break;
 		}
 	}
 }
+
+
 
 int saveStruct(const char* filename, struct busTimetable* trip, int n)
 {
