@@ -13,6 +13,9 @@ void adminMenu();
 void userMenu();
 int saveStruct(const char*, struct busTimetable*, int n);
 int loadStruct(const char*);
+busTimetable* AddStruct(busTimetable*, const int);
+void setData(busTimetable*, const int);
+void changeData(busTimetable*, const int);
 
 struct busTimetable
 {
@@ -30,43 +33,6 @@ struct busTimetable
 
 
 //void printBestTrip();
-
-busTimetable* AddStruct(busTimetable* Obj, const int amount)
-{
-	if (amount == 0)
-	{
-		Obj = new busTimetable[amount + 1]; // выделение памяти для первой структуры
-	}
-	else
-	{
-		busTimetable* tempObj = new busTimetable[amount + 1];
-
-		for (int i = 0; i < amount; i++)
-		{
-			tempObj[i] = Obj[i]; // копируем во временный объект
-		}
-		delete[] Obj;
-
-		Obj = tempObj;
-	}
-	return Obj;
-}
-
-void setData(busTimetable* trip, const int amount)
-{
-	std::cout << "Введите номер рейса" << std::endl;
-	std::cin >> trip[amount].numberBusTrip;
-	std::cout << "Введите тип автобуса (цвет)" << std::endl;
-	std::cin >> trip[amount].type.colour;
-	std::cout << "Введите тип автобуса (размер)" << std::endl;
-	std::cin >> trip[amount].type.size;
-	std::cout << "Введите пункт назначения" << std::endl;
-	std::cin >> trip[amount].destination;
-	std::cout << "Введите время отправления" << std::endl;
-	std::cin >> trip[amount].departureTime;
-	std::cout << "Введите время прибытия" << std::endl;
-	std::cin >> trip[amount].arrivalTime;
-}
 
 const char* dataFile = "dataBusTimetable.txt";
 struct busTimetable* trip = 0;
@@ -152,6 +118,8 @@ void adminAuthorization()
 //	}
 //}
 
+
+
 void adminMenu()
 {
 	
@@ -174,73 +142,39 @@ void adminMenu()
 		{
 		case 1:
 			if (FILE* dataBusTimetable = fopen(dataFile, "w"))
-			{
 				std::cout << "Файл успешно создан" << std::endl;
-			}
 			else
-			{
 				std::cout << "Ошибка создания файла" << std::endl;
-			}
 			break;
+
 		case 2:
 			trip = AddStruct(trip, tripAmount);
 			setData(trip, tripAmount);
 			tripAmount++;
 			break;
+
 		case 3:
-			int whatChange;
-			int i;
-			n = sizeof(trip) / sizeof(trip[0]);
-			while (true)
+			int i;	
+			std::cout << "Выберите номер рейса. Всего рейсов: " << tripAmount << std::endl;
+			std::cin >> i;
+			if (i < 1 || i > tripAmount)
 			{
-				std::cout << "Выберите номер рейса. Всего рейсов: " << n << std::endl;
+				std::cout << "Таких рейсов не существует" << std::endl;
+				break;
+			}
+			changeData(trip, i - 1);
+			break;
+
+			case 4:
+				int number;
+				std::cout << "Выберите номер рейса для удаления. Всего рейсов: " << tripAmount << std::endl;
 				std::cin >> i;
-				if (i < 1 || i > n)
+				if (i < 1 || i > tripAmount)
 				{
 					std::cout << "Таких рейсов не существует" << std::endl;
 					break;
 				}
-				i--;
-				std::cout <<
-					"Выберите, что хотите изменить в рейсе: " << std::endl <<
-					"1. Номер рейса" << std::endl <<
-					"2. Тип автобуса" << std::endl <<
-					"3. Пункт назначения" << std::endl <<
-					"4. Время отправления" << std::endl <<
-					"5. Время прибытия" << std::endl <<
-					"6. Выйти в меню администратора" << std::endl;
-				std::cin >> whatChange;
-				system("CLS");	
-				switch (whatChange)
-				{
-					case 1:
-						std::cout << "Введите номер рейса" << std::endl;
-						std::cin >> trip[i].numberBusTrip;
-						break;
-					case 2:
-						std::cout << "Введите тип автобуса (цвет)" << std::endl;
-						std::cin >> trip[i].type.colour;
-						std::cout << "Введите тип автобуса (размер)" << std::endl;
-						std::cin >> trip[i].type.size;
-						break;
-					case 3:
-						std::cout << "Введите пункт назначения" << std::endl;
-						std::cin >> trip[i].destination;
-						break;
-					case 4:
-						std::cout << "Введите время отправления" << std::endl;
-						std::cin >> trip[i].departureTime;
-						break;
-					case 5:
-						std::cout << "Введите время прибытия" << std::endl;
-						std::cin >> trip[i].arrivalTime;
-						break;
-					default:
-						break;
-				}
-				break;
-			}
-			case 4:
+				
 				break;
 			case 5:
 				loadStruct(dataFile);
@@ -343,4 +277,88 @@ int loadStruct(const char* filename)
 	free(ptr);
 	fclose(fileTemp);
 	return 0;
+}
+
+busTimetable* AddStruct(busTimetable* Obj, const int amount)
+{
+	if (amount == 0)
+	{
+		Obj = new busTimetable[amount + 1]; // выделение памяти для первой структуры
+	}
+	else
+	{
+		busTimetable* tempObj = new busTimetable[amount + 1];
+
+		for (int i = 0; i < amount; i++)
+		{
+			tempObj[i] = Obj[i]; // копируем во временный объект
+		}
+		delete[] Obj;
+
+		Obj = tempObj;
+	}
+	return Obj;
+}
+
+void setData(busTimetable* trip, const int amount)
+{
+	std::cout << "Введите номер рейса" << std::endl;
+	std::cin >> trip[amount].numberBusTrip;
+	std::cout << "Введите тип автобуса (цвет)" << std::endl;
+	std::cin >> trip[amount].type.colour;
+	std::cout << "Введите тип автобуса (размер)" << std::endl;
+	std::cin >> trip[amount].type.size;
+	std::cout << "Введите пункт назначения" << std::endl;
+	std::cin >> trip[amount].destination;
+	std::cout << "Введите время отправления" << std::endl;
+	std::cin >> trip[amount].departureTime;
+	std::cout << "Введите время прибытия" << std::endl;
+	std::cin >> trip[amount].arrivalTime;
+}
+
+void changeData(busTimetable* trip, const int i)
+{
+	int whatChange;
+	std::cout <<
+		"Выберите, что хотите изменить в рейсе: " << std::endl <<
+		"1. Номер рейса" << std::endl <<
+		"2. Тип автобуса" << std::endl <<
+		"3. Пункт назначения" << std::endl <<
+		"4. Время отправления" << std::endl <<
+		"5. Время прибытия" << std::endl <<
+		"6. Выйти в меню администратора" << std::endl;
+	std::cin >> whatChange;
+	system("CLS");
+	switch (whatChange)
+	{
+		case 1:
+			std::cout << "Введите номер рейса" << std::endl;
+			std::cin >> trip[i].numberBusTrip;
+			break;
+
+		case 2:
+			std::cout << "Введите тип автобуса (цвет)" << std::endl;
+			std::cin >> trip[i].type.colour;
+			std::cout << "Введите тип автобуса (размер)" << std::endl;
+			std::cin >> trip[i].type.size;
+			break;
+
+		case 3:
+			std::cout << "Введите пункт назначения" << std::endl;
+			std::cin >> trip[i].destination;
+			break;
+
+		case 4:
+			std::cout << "Введите время отправления" << std::endl;
+			std::cin >> trip[i].departureTime;
+			break;
+
+		case 5:
+			std::cout << "Введите время прибытия" << std::endl;
+			std::cin >> trip[i].arrivalTime;
+			break;
+
+		default:
+			break;
+	}
 }
