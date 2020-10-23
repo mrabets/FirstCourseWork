@@ -4,7 +4,7 @@
 #include <windows.h>
 #include "Header.h"
 
-struct busTimetable
+struct Trips
 {
 	int numberBusTrip;
 	struct typeBus
@@ -29,11 +29,11 @@ struct Users
 	char password[20];
 };
 
-const char* dataFile = "dataBusTimetable.txt";
+const char* tripFile = "trip.txt";
 const char* adminFile = "admins.txt";
 const char* userFile = "users.txt";
 
-struct busTimetable* trip = 0;
+struct Trips* trip = 0;
 int tripAmount = 0;
 
 struct Admins* admin = 0;
@@ -74,7 +74,7 @@ void adminAuthorization()
 			admin = deleteData(admin);
 			break;
 		case 5:
-			loadStruct(adminFile, admin);
+			loadStruct(admin);
 			break;
 		default:
 			return;
@@ -136,7 +136,7 @@ void userManagement()
 			user = changeData(user);
 			break;
 		case 4:
-			loadStruct(userFile, user);
+			loadStruct(user);
 			break;
 		case 5:
 			user = deleteData(user);
@@ -163,7 +163,7 @@ void userMenu()
 		switch (choice)
 		{
 		case 1:
-			loadStruct(dataFile, trip);
+			loadStruct(trip);
 			break;
 
 		case 2:
@@ -197,7 +197,7 @@ void adminMenu()
 		switch (choice)
 		{
 		case 1:
-			createFile(dataFile, trip);
+			createFile(tripFile, trip);
 			break;
 		case 2:
 			trip = signUp(trip, tripAmount);
@@ -209,7 +209,7 @@ void adminMenu()
 			trip = deleteData(trip);
 			break;
 		case 5:
-			loadStruct(dataFile, trip);
+			loadStruct(trip);
 			break;
 		case 6:
 			userManagement();
@@ -232,15 +232,15 @@ void createFile(const char* filename, T* someStruct)
 		std::cout << "Ошибка создания файла" << std::endl;
 }
 
-int saveStruct(const char* filename, struct busTimetable* trip, int n)
+int saveStruct(struct Trips* trip, int n)
 {
 	FILE* fileTemp;
 	char* c;
 
 	// число записываемых байтов
-	int size = n * sizeof(struct busTimetable);
+	int size = n * sizeof(struct Trips);
 
-	if ((fileTemp = fopen(filename, "wb")) == NULL)
+	if ((fileTemp = fopen(tripFile, "wb")) == NULL)
 	{
 		perror("Error occured while opening file");
 		return 1;
@@ -263,7 +263,7 @@ int saveStruct(const char* filename, struct busTimetable* trip, int n)
 	return 0;
 }
 
-int saveStruct(const char* filename, struct Admins* admin, int n)
+int saveStruct(struct Admins* admin, int n)
 {
 	FILE* fileTemp;
 	char* c;
@@ -271,7 +271,7 @@ int saveStruct(const char* filename, struct Admins* admin, int n)
 	// число записываемых байтов
 	int size = n * sizeof(struct Admins);
 
-	if ((fileTemp = fopen(filename, "wb")) == NULL)
+	if ((fileTemp = fopen(adminFile, "wb")) == NULL)
 	{
 		perror("Error occured while opening file");
 		return 1;
@@ -294,7 +294,7 @@ int saveStruct(const char* filename, struct Admins* admin, int n)
 	return 0;
 }
 
-int saveStruct(const char* filename, struct Users* user, int n)
+int saveStruct(struct Users* user, int n)
 {
 	FILE* fileTemp;
 	char* c;
@@ -302,7 +302,7 @@ int saveStruct(const char* filename, struct Users* user, int n)
 	// число записываемых байтов
 	int size = n * sizeof(struct Users);
 
-	if ((fileTemp = fopen(filename, "wb")) == NULL)
+	if ((fileTemp = fopen(userFile, "wb")) == NULL)
 	{
 		perror("Error occured while opening file");
 		return 1;
@@ -325,7 +325,7 @@ int saveStruct(const char* filename, struct Users* user, int n)
 	return 0;
 }
 
-int loadStruct(const char* filename, struct busTimetable* trip)
+int loadStruct(struct Trips* trip)
 {
 	FILE* fileTemp;
 	char* c;
@@ -335,7 +335,7 @@ int loadStruct(const char* filename, struct busTimetable* trip)
 	// выделяем память для количества данных
 	int* pti = (int*)malloc(m);
 
-	if ((fileTemp = fopen(filename, "r")) == NULL)
+	if ((fileTemp = fopen(tripFile, "r")) == NULL)
 	{
 		perror("Error occured while opening file");
 		return 1;
@@ -354,7 +354,7 @@ int loadStruct(const char* filename, struct busTimetable* trip)
 	n = *pti;
 
 	// выделяем память для считанного массива структур
-	struct busTimetable* ptr = (struct busTimetable*)malloc(n * sizeof(struct busTimetable));
+	struct Trips* ptr = (struct Trips*)malloc(n * sizeof(struct Trips));
 	c = (char*)ptr;
 	// после записи считываем посимвольно из файла
 	while ((i = getc(fileTemp)) != EOF)
@@ -383,7 +383,7 @@ int loadStruct(const char* filename, struct busTimetable* trip)
 	return 0;
 }
 
-int loadStruct(const char* filename, struct Admins* admin)
+int loadStruct(struct Admins* admin)
 {
 	FILE* fileTemp;
 	char* c;
@@ -393,7 +393,7 @@ int loadStruct(const char* filename, struct Admins* admin)
 	// выделяем память для количества данных
 	int* pti = (int*)malloc(m);
 
-	if ((fileTemp = fopen(filename, "r")) == NULL)
+	if ((fileTemp = fopen(adminFile, "r")) == NULL)
 	{
 		perror("Error occured while opening file");
 		return 1;
@@ -437,7 +437,7 @@ int loadStruct(const char* filename, struct Admins* admin)
 	return 0;
 }
 
-int loadStruct(const char* filename, struct Users* user)
+int loadStruct(struct Users* user)
 {
 	FILE* fileTemp;
 	char* c;
@@ -447,7 +447,7 @@ int loadStruct(const char* filename, struct Users* user)
 	// выделяем память для количества данных
 	int* pti = (int*)malloc(m);
 
-	if ((fileTemp = fopen(filename, "r")) == NULL)
+	if ((fileTemp = fopen(userFile, "r")) == NULL)
 	{
 		perror("Error occured while opening file");
 		return 1;
@@ -491,15 +491,15 @@ int loadStruct(const char* filename, struct Users* user)
 	return 0;
 }
 
-busTimetable* addStruct(busTimetable* trip, const int amount)
+Trips* addStruct(Trips* trip, const int amount)
 {
 	if (amount == 0)
 	{
-		trip = new busTimetable[amount + 1];
+		trip = new Trips[amount + 1];
 	}
 	else
 	{
-		busTimetable* temp = new busTimetable[amount + 1];
+		Trips* temp = new Trips[amount + 1];
 
 		for (int i = 0; i < amount; i++)
 		{
@@ -562,7 +562,7 @@ Admins* signUp(Admins* admin, int& adminAmount)
 	std::cout << "Новый пароль: " << std::endl;
 	std::cin >> admin[adminAmount].password;
 	adminAmount++;
-	saveStruct(adminFile, admin, adminAmount);
+	saveStruct(admin, adminAmount);
 	return admin;
 }
 
@@ -574,11 +574,11 @@ Users* signUp(Users* user, int& userAmount)
 	std::cout << "Новый пароль: " << std::endl;
 	std::cin >> user[userAmount].password;
 	userAmount++;
-	saveStruct(userFile, user, userAmount);
+	saveStruct(user, userAmount);
 	return user;
 }
 
-busTimetable* signUp(busTimetable* trip, int& tripAmount)
+Trips* signUp(Trips* trip, int& tripAmount)
 {
 	trip = addStruct(trip, tripAmount);
 	std::cout << "Введите номер рейса" << std::endl;
@@ -594,7 +594,7 @@ busTimetable* signUp(busTimetable* trip, int& tripAmount)
 	std::cout << "Введите время прибытия" << std::endl;
 	std::cin >> trip[tripAmount].arrivalTime;
 	tripAmount++;
-	saveStruct(dataFile, trip, tripAmount);
+	saveStruct(trip, tripAmount);
 	return trip;
 }
 
@@ -636,7 +636,7 @@ bool signIn(Users* user)
 	return false;
 }
 
-busTimetable* changeData(busTimetable* trip)
+Trips* changeData(Trips* trip)
 {
 	int i;
 	std::cout << "Выберите номер рейса. Всего рейсов: " << tripAmount << std::endl;
@@ -690,7 +690,7 @@ busTimetable* changeData(busTimetable* trip)
 	default:
 		break;
 	}
-	saveStruct(dataFile, trip, tripAmount);
+	saveStruct(trip, tripAmount);
 	return trip;
 }
 
@@ -726,11 +726,11 @@ Users* changeData(Users* user)
 	default:
 		break;
 	}
-	saveStruct(userFile, user, userAmount);
+	saveStruct(user, userAmount);
 	return user;
 }
 
-busTimetable* deleteData(struct busTimetable* trip)
+Trips* deleteData(struct Trips* trip)
 {
 	int number;
 	std::cout << "Выберите номер рейса для удаления. Всего рейсов: " << tripAmount << std::endl;
@@ -745,7 +745,7 @@ busTimetable* deleteData(struct busTimetable* trip)
 		trip[i] = trip[i + 1];
 	}
 	tripAmount--;
-	saveStruct(dataFile, trip, tripAmount);
+	saveStruct(trip, tripAmount);
 	return trip;
 }
 
@@ -764,7 +764,7 @@ Users* deleteData(struct Users* user)
 		user[i] = user[i + 1];
 	}
 	userAmount--;
-	saveStruct(userFile, user, userAmount);
+	saveStruct(user, userAmount);
 	return user;
 }
 
@@ -783,7 +783,7 @@ Admins* deleteData(struct Admins* admin)
 		admin[i] = admin[i + 1];
 	}
 	adminAmount--;
-	saveStruct(adminFile, admin, adminAmount);
+	saveStruct(admin, adminAmount);
 	return admin;
 }
 
