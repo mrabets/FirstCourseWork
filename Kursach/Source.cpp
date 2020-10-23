@@ -1,21 +1,9 @@
+#include <stdio.h>  
+#include <iostream> 
 #include <locale.h>
 #include <windows.h>
-#include <stdio.h> 
-#include <io.h> 
-#include <cstring> 
-#include <iostream> 
-#include <conio.h> 
-#include <time.h> 
-#include <string> 
+#include "Header.h"
 
-void adminAuthorization();
-void adminMenu();
-void userMenu();
-int saveStruct(const char*, struct busTimetable*, int n);
-int loadStruct(const char*);
-busTimetable* AddStruct(busTimetable*, const int);
-void setData(busTimetable*, const int);
-void changeData(busTimetable*, const int);
 
 struct busTimetable
 {
@@ -29,14 +17,31 @@ struct busTimetable
 	char departureTime[20];
 	char arrivalTime[20];
 };
-//struct busTimetable trip[] = { 77, "green", "big", "Minsk", "22:10", "12:44", 312, "brown", "little", "Moscow", "23:28", "07:33" };
 
+struct Admins
+{
+	char login[20];
+	char password[20];
+};
 
-//void printBestTrip();
+struct Users
+{
+	char login[20];
+	char password[20];
+};
 
 const char* dataFile = "dataBusTimetable.txt";
+const char* adminFile = "admins.txt";
+const char* userFile = "users.txt";
+
 struct busTimetable* trip = 0;
 int tripAmount = 0;
+
+struct Admins* admin = 0;
+int adminAmount = 0;
+
+struct Users* user = 0;
+int userAmount = 0;
 
 int main()
 {
@@ -53,40 +58,121 @@ int main()
 		std::cin >> choice;
 		system("CLS");
 		switch (choice)
-		{
-			
+		{		
 			case 1:
-				adminMenu();
+				adminAuthorization();
 				break;
 			case 2:
-				userMenu();
+				userAuthorization();
 				break;
 			default:
-				return 0;
-				
+				return 0;		
 		}
 	}
-
-	return 0;
 }
 
 void adminAuthorization()
 {
-	FILE* file_authorization;
-	file_authorization = fopen("authorization.txt", "r");
-	char login[255], password[255], file_str[255];
-	std::cout << "Введите логин администратора" << std::endl;
-	std::cin >> login;
-	//std::cout << "Введите пароль администратора" << std::endl;
-	//std::cin >> password;
-	fgets(file_str, 255, file_authorization);
-	if (!strcmp(login, file_str))
+	int choice;
+	while (true)
 	{
-		std::cout << "Авторизация прошла успешно" << std::endl;
+		std::cout <<
+			"1. Создать файл администраторов" << std::endl <<
+			"2. Регистрация" << std::endl <<
+			"3. Вход" << std::endl <<
+			"4. Удалить администратора" << std::endl <<
+			"5. Просмотреть файл администраторов" << std::endl <<		
+			"6. Выход" << std::endl;
+		std::cin >> choice;
+		system("CLS");
+		switch (choice)
+		{
+		case 1:
+			createFile(adminFile, admin);
+			break;
+		case 2:
+			admin = signUp(admin, adminAmount);
+			break;
+		case 3:
+			if (signIn(admin))
+				adminMenu();
+			else
+				std::cout << "Неправильный логин или пароль" << std::endl;
+			break;
+		case 4:
+			admin = deleteData(admin);
+			break;
+		case 5:
+			loadStruct(adminFile, admin);
+			break;
+		default:
+			return;
+		}
 	}
-	else
+}
+
+void userAuthorization()
+{
+	int choice;
+	while (true)
 	{
-		std::cout << "Вы не прошли авторизацию" << std::endl;
+		std::cout <<
+			"1. Регистрация" << std::endl <<
+			"2. Войти" << std::endl <<
+			"3. Выход" << std::endl;
+		std::cin >> choice;
+		system("CLS");
+		switch (choice)
+		{
+		case 1:
+			user = signUp(user, userAmount);
+			break;
+		case 2:
+			if (signIn(user))
+				userMenu();
+			else
+				std::cout << "Неправильный логин или пароль" << std::endl;
+			break;
+		default:
+			return;
+		}
+	}
+}
+
+void userManagement()
+{
+	int choice;
+	while (true)
+	{
+		std::cout <<
+			"1. Создать файл пользователей" << std::endl <<
+			"2. Регистрация пользователя" << std::endl <<
+			"3. Изменить данные пользователя" << std::endl <<
+			"4. Просмотреть файл пользователей" << std::endl <<
+			"5. Удалить пользователя" << std::endl <<
+			"6. Выход" << std::endl;
+		std::cin >> choice;
+		system("CLS");
+		switch (choice)
+		{
+		case 1:
+			createFile(userFile, user);
+			break;
+		case 2:
+			user = signUp(user, userAmount);
+			break;
+		case 3:
+			user = changeData(user);
+			break;
+		case 4:
+			loadStruct(userFile, user);
+			break;
+		case 5:
+			user = deleteData(user);
+			break;
+		default:
+			return;
+		}
 	}
 }
 
@@ -96,45 +182,25 @@ void userMenu()
 	{
 		std::cout <<
 			"1. Просмотреть все автобусные рейсы" << std::endl <<
-			"2. Искать рейсы по месту назначения" << std::endl <<
-			"3. Искать рейсы по времени отправления" << std::endl <<
-			"4. Выход в основное меню" << std::endl;
-
+			"2. Искать рейсы по типу автобуса" << std::endl <<
+			"3. Вывести информацию о рейсах, которыми можно воспользоваться" << std::endl <<
+			"   для прибытия в пункт назначения раньше заданного времени" << std::endl <<
+			"4. Выход" << std::endl;
 		int choice;
 		std::cin >> choice;
 		system("CLS");
 		switch (choice)
 		{
 		case 1:
-			loadStruct(dataFile);
+			loadStruct(dataFile, trip);
 			break;
 
 		case 2:
-			char city[20];
-			std::cout << "Введите город: " << std::endl;
-			std::cin >> city;
-			for (int i = 0; i < tripAmount; i++)
-			{
-				if (!strcmp(city, trip[i].destination))
-				{
-					std::cout << "Найден рейс с номером: " << i + 1 << std::endl;
-				}
-			}
+			findBusType();
 			break;
-
 		case 3:
-			char time[20];
-			std::cout << "Введите время отправления: " << std::endl;
-			std::cin >> time;
-			for (int i = 0; i < tripAmount; i++)
-			{
-				if (!strcmp(time, trip[i].departureTime))
-				{
-					std::cout << "Найден рейс с номером: " << i + 1 << std::endl;
-				}
-			}
+			findEarlierTrip();
 			break;
-
 		default:
 			return;
 		}
@@ -146,69 +212,53 @@ void adminMenu()
 	int choice;
 	while (true)
 	{
-		int n;
 		std::cout <<
 			"1. Создать файл с автобусными рейсами" << std::endl <<
 			"2. Добавить новый рейс" << std::endl <<
 			"3. Изменить рейс" << std::endl <<
 			"4. Удалить рейс" << std::endl <<
 			"5. Просмотреть все автобусные рейсы в файле " << std::endl <<
-			"6. Перезаписать данные в файл" << std::endl <<
-			"7. Управление пользователями" << std::endl <<
-			"8. Выход в меню 1 - го уровня" << std::endl;
+			"6. Управление пользователями" << std::endl <<
+			"7. Искать рейсы по номеру" << std::endl <<
+			"8. Выход" << std::endl;
 		std::cin >> choice;
 		system("CLS");
 		switch (choice)
 		{
-		case 1:
-			if (FILE* dataBusTimetable = fopen(dataFile, "w"))
-				std::cout << "Файл успешно создан" << std::endl;
-			else
-				std::cout << "Ошибка создания файла" << std::endl;
-			break;
-
-		case 2:
-			trip = AddStruct(trip, tripAmount);
-			setData(trip, tripAmount);
-			tripAmount++;
-			break;
-
-		case 3:
-			int i;	
-			std::cout << "Выберите номер рейса. Всего рейсов: " << tripAmount << std::endl;
-			std::cin >> i;
-			if (i < 1 || i > tripAmount)
-			{
-				std::cout << "Таких рейсов не существует" << std::endl;
+			case 1:
+				createFile(dataFile, trip);
 				break;
-			}
-			changeData(trip, i - 1);
-			break;
-
+			case 2:
+				trip = signUp(trip, tripAmount);
+				break;
+			case 3:
+				trip = changeData(trip);
+				break;
 			case 4:
-				int number;
-				std::cout << "Выберите номер рейса для удаления. Всего рейсов: " << tripAmount << std::endl;
-				std::cin >> i;
-				if (i < 1 || i > tripAmount)
-				{
-					std::cout << "Таких рейсов не существует" << std::endl;
-					break;
-				}
-				//...
+				trip = deleteData(trip);
 				break;
 			case 5:
-				loadStruct(dataFile);
+				loadStruct(dataFile, trip);
 				break;
 			case 6:
-				saveStruct(dataFile, trip, tripAmount);
+				userManagement();
 				break;
 			case 7:
+				findTripNumber();
 				break;
-
 			default:
 				return;
 		}
 	}
+}
+
+template <typename T>
+void createFile(const char* filename, T* someStruct)
+{
+	if (FILE* T = fopen(filename, "w+"))
+		std::cout << "Файл успешно создан" << std::endl;
+	else
+		std::cout << "Ошибка создания файла" << std::endl;
 }
 
 int saveStruct(const char* filename, struct busTimetable* trip, int n)
@@ -242,7 +292,69 @@ int saveStruct(const char* filename, struct busTimetable* trip, int n)
 	return 0;
 }
 
-int loadStruct(const char* filename)
+int saveStruct(const char* filename, struct Admins* admin, int n)
+{
+	FILE* fileTemp;
+	char* c;
+
+	// число записываемых байтов
+	int size = n * sizeof(struct Admins);
+
+	if ((fileTemp = fopen(filename, "wb")) == NULL)
+	{
+		perror("Error occured while opening file");
+		return 1;
+	}
+	// записываем количество структур
+	c = (char*)&n;
+	for (int i = 0; i < sizeof(int); i++)
+	{
+		putc(*c++, fileTemp);
+	}
+
+	// посимвольно записываем в файл все структуры
+	c = (char*)admin;
+	for (int i = 0; i < size; i++)
+	{
+		putc(*c, fileTemp);
+		c++;
+	}
+	fclose(fileTemp);
+	return 0;
+}
+
+int saveStruct(const char* filename, struct Users* user, int n)
+{
+	FILE* fileTemp;
+	char* c;
+
+	// число записываемых байтов
+	int size = n * sizeof(struct Users);
+
+	if ((fileTemp = fopen(filename, "wb")) == NULL)
+	{
+		perror("Error occured while opening file");
+		return 1;
+	}
+	// записываем количество структур
+	c = (char*)&n;
+	for (int i = 0; i < sizeof(int); i++)
+	{
+		putc(*c++, fileTemp);
+	}
+
+	// посимвольно записываем в файл все структуры
+	c = (char*)user;
+	for (int i = 0; i < size; i++)
+	{
+		putc(*c, fileTemp);
+		c++;
+	}
+	fclose(fileTemp);
+	return 0;
+}
+
+int loadStruct(const char* filename, struct busTimetable* trip)
 {
 	FILE* fileTemp;
 	char* c;
@@ -300,45 +412,270 @@ int loadStruct(const char* filename)
 	return 0;
 }
 
-busTimetable* AddStruct(busTimetable* Obj, const int amount)
+int loadStruct(const char* filename, struct Admins* admin)
+{
+	FILE* fileTemp;
+	char* c;
+	int m = sizeof(int);
+	int n, i;
+
+	// выделяем память для количества данных
+	int* pti = (int*)malloc(m);
+
+	if ((fileTemp = fopen(filename, "r")) == NULL)
+	{
+		perror("Error occured while opening file");
+		return 1;
+	}
+	// считываем количество структур
+	c = (char*)pti;
+	while (m > 0)
+	{
+		i = getc(fileTemp);
+		if (i == EOF) break;
+		*c = i;
+		c++;
+		m--;
+	}
+	//получаем число элементов
+	n = *pti;
+
+	// выделяем память для считанного массива структур
+	struct Admins* ptr = (struct Admins*)malloc(n * sizeof(struct Admins));
+	c = (char*)ptr;
+	// после записи считываем посимвольно из файла
+	while ((i = getc(fileTemp)) != EOF)
+	{
+		*c = i;
+		c++;
+	}
+	// перебор загруженных элементов и вывод на консоль
+	std::cout << "Количество администраторов: " << n << std::endl;
+
+	for (int k = 0; k < n; k++)
+	{
+		std::cout << std::endl <<
+			k + 1 << " Логин: " << (ptr + k)->login << std::endl <<
+			k + 1 << " Пароль: " << (ptr + k)->password << std::endl;
+	}
+
+	std::cout << std::endl;
+	free(pti);
+	free(ptr);
+	fclose(fileTemp);
+	return 0;
+}
+
+int loadStruct(const char* filename, struct Users* user)
+{
+	FILE* fileTemp;
+	char* c;
+	int m = sizeof(int);
+	int n, i;
+
+	// выделяем память для количества данных
+	int* pti = (int*)malloc(m);
+
+	if ((fileTemp = fopen(filename, "r")) == NULL)
+	{
+		perror("Error occured while opening file");
+		return 1;
+	}
+	// считываем количество структур
+	c = (char*)pti;
+	while (m > 0)
+	{
+		i = getc(fileTemp);
+		if (i == EOF) break;
+		*c = i;
+		c++;
+		m--;
+	}
+	//получаем число элементов
+	n = *pti;
+
+	// выделяем память для считанного массива структур
+	struct Users* ptr = (struct Users*)malloc(n * sizeof(struct Users));
+	c = (char*)ptr;
+	// после записи считываем посимвольно из файла
+	while ((i = getc(fileTemp)) != EOF)
+	{
+		*c = i;
+		c++;
+	}
+	// перебор загруженных элементов и вывод на консоль
+	std::cout << "Количество пользователей: " << n << std::endl;
+
+	for (int k = 0; k < n; k++)
+	{
+		std::cout << std::endl <<
+			k + 1 << " Логин: " << (ptr + k)->login << std::endl <<
+			k + 1 << " Пароль: " << (ptr + k)->password << std::endl;
+	}
+
+	std::cout << std::endl;
+	free(pti);
+	free(ptr);
+	fclose(fileTemp);
+	return 0;
+}
+
+busTimetable* addStruct(busTimetable* trip, const int amount)
 {
 	if (amount == 0)
 	{
-		Obj = new busTimetable[amount + 1]; // выделение памяти для первой структуры
+		trip = new busTimetable[amount + 1];
 	}
 	else
 	{
-		busTimetable* tempObj = new busTimetable[amount + 1];
+		busTimetable* temp = new busTimetable[amount + 1];
 
 		for (int i = 0; i < amount; i++)
 		{
-			tempObj[i] = Obj[i]; // копируем во временный объект
+			temp[i] = trip[i];
 		}
-		delete[] Obj;
+		delete[] trip;
 
-		Obj = tempObj;
+		trip = temp;
 	}
-	return Obj;
+	return trip;
 }
 
-void setData(busTimetable* trip, const int amount)
+Admins* addStruct(Admins* admin, const int index)
 {
+	if (index == 0)
+	{
+		admin = new Admins[index + 1];
+	}
+	else
+	{
+		Admins* temp = new Admins[index + 1];
+
+		for (int i = 0; i < index; i++)
+		{
+			temp[i] = admin[i];
+		}
+		delete[] admin;
+
+		admin = temp;
+	}
+	return admin;
+}
+
+Users* addStruct(Users* user, const int index)
+{
+	if (index == 0)
+	{
+		user = new Users[index + 1]; 
+	}
+	else
+	{
+		Users* temp = new Users[index + 1];
+
+		for (int i = 0; i < index; i++)
+		{
+			temp[i] = user[i];
+		}
+		delete[] user;
+
+		user = temp;
+	}
+	return user;
+}
+
+Admins* signUp(Admins* admin, int &adminAmount)
+{
+	admin = addStruct(admin, adminAmount);
+	std::cout << "Новый логин: " << std::endl;
+	std::cin >> admin[adminAmount].login;
+	std::cout << "Новый пароль: " << std::endl;
+	std::cin >> admin[adminAmount].password;
+	adminAmount++;
+	saveStruct(adminFile, admin, adminAmount);
+	return admin;
+}
+
+Users* signUp(Users* user, int& userAmount)
+{
+	user = addStruct(user, userAmount);
+	std::cout << "Новый логин: " << std::endl;
+	std::cin >> user[userAmount].login;
+	std::cout << "Новый пароль: " << std::endl;
+	std::cin >> user[userAmount].password;
+	userAmount++;
+	saveStruct(userFile, user, userAmount);
+	return user;
+}
+
+busTimetable* signUp(busTimetable* trip, int& tripAmount)
+{
+	trip = addStruct(trip, tripAmount);
 	std::cout << "Введите номер рейса" << std::endl;
-	std::cin >> trip[amount].numberBusTrip;
+	std::cin >> trip[tripAmount].numberBusTrip;
 	std::cout << "Введите тип автобуса (цвет)" << std::endl;
-	std::cin >> trip[amount].type.colour;
+	std::cin >> trip[tripAmount].type.colour;
 	std::cout << "Введите тип автобуса (размер)" << std::endl;
-	std::cin >> trip[amount].type.size;
+	std::cin >> trip[tripAmount].type.size;
 	std::cout << "Введите пункт назначения" << std::endl;
-	std::cin >> trip[amount].destination;
+	std::cin >> trip[tripAmount].destination;
 	std::cout << "Введите время отправления" << std::endl;
-	std::cin >> trip[amount].departureTime;
+	std::cin >> trip[tripAmount].departureTime;
 	std::cout << "Введите время прибытия" << std::endl;
-	std::cin >> trip[amount].arrivalTime;
+	std::cin >> trip[tripAmount].arrivalTime;
+	tripAmount++;
+	saveStruct(dataFile, trip, tripAmount);
+	return trip;
 }
 
-void changeData(busTimetable* trip, const int i)
+bool signIn(Admins* admin)
 {
+	char login[20];
+	char password[20];
+	std::cout << "Логин: " << std::endl;
+	std::cin >> login;
+	std::cout << "Пароль: " << std::endl;
+	std::cin >> password;
+	for (int i = 0; i < adminAmount; i++)
+	{
+		if (!strcmp(login, admin[i].login) && !strcmp(password, admin[i].password))
+		{
+			std::cout << "Вы успешно вошли под администратора" << std::endl;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool signIn(Users* user)
+{
+	char login[20];
+	char password[20];
+	std::cout << "Логин: " << std::endl;
+	std::cin >> login;
+	std::cout << "Пароль: " << std::endl;
+	std::cin >> password;
+	for (int i = 0; i < userAmount; i++)
+	{
+		if (!strcmp(login, user[i].login) && !strcmp(password, user[i].password))
+		{
+			std::cout << "Вы успешно вошли под пользователя" << std::endl;
+			return true;
+		}
+	}
+	return false;
+}
+
+busTimetable* changeData(busTimetable* trip)
+{
+	int i;
+	std::cout << "Выберите номер рейса. Всего рейсов: " << tripAmount << std::endl;
+	std::cin >> i;
+	if (i < 1 || i > tripAmount)
+	{
+		std::cout << "Таких рейсов не существует" << std::endl;
+		return trip;
+	}
+	i--;
 	int whatChange;
 	std::cout <<
 		"Выберите, что хотите изменить в рейсе: " << std::endl <<
@@ -382,4 +719,158 @@ void changeData(busTimetable* trip, const int i)
 		default:
 			break;
 	}
+	saveStruct(dataFile, trip, tripAmount);
+	return trip;
 }
+
+Users* changeData(Users* user)
+{
+	int i;
+	std::cout << "Выберите номер пользователя. Всего пользователей: " << userAmount << std::endl;
+	std::cin >> i;
+	if (i < 1 || i > userAmount)
+	{
+		std::cout << "Таких пользователей не существует" << std::endl;
+		return user;
+	}
+	i--;
+	int whatChange;
+	std::cout <<
+		"Выберите, что хотите изменить у пользователя: " << std::endl <<
+		"1. Логин" << std::endl <<
+		"2. Пароль" << std::endl <<
+		"3. Выйти" << std::endl;
+	std::cin >> whatChange;
+	system("CLS");
+	switch (whatChange)
+	{
+	case 1:
+		std::cout << "Введите новый логин: " << std::endl;
+		std::cin >> user[i].login;
+		break;
+	case 2:
+		std::cout << "Введите новый пароль: " << std::endl;
+		std::cin >> user[i].password;
+		break;
+	default:
+		break;
+	}
+	saveStruct(userFile, user, userAmount);
+	return user;
+}
+
+busTimetable* deleteData(struct busTimetable* trip)
+{
+	int number;
+	std::cout << "Выберите номер рейса для удаления. Всего рейсов: " << tripAmount << std::endl;
+	std::cin >> number;
+	if (number < 1 || number > tripAmount)
+	{
+		std::cout << "Таких рейсов не существует" << std::endl;
+		return trip;
+	}
+	for (int i = number - 1; i < tripAmount - 1; i++)
+	{
+		trip[i] = trip[i + 1];
+	}
+	tripAmount--;
+	saveStruct(dataFile, trip, tripAmount);
+	return trip;
+}
+
+Users* deleteData(struct Users* user)
+{
+	int number;
+	std::cout << "Выберите номер пользователя для удаления. Всего пользователей: " << userAmount << std::endl;
+	std::cin >> number;
+	if (number < 1 || number > userAmount)
+	{
+		std::cout << "Таких пользователей не существует" << std::endl;
+		return user;
+	}
+	for (int i = number - 1; i < userAmount - 1; i++)
+	{
+		user[i] = user[i + 1];
+	}
+	userAmount--;
+	saveStruct(userFile, user, userAmount);
+	return user;
+}
+
+Admins* deleteData(struct Admins* admin)
+{
+	int number;
+	std::cout << "Выберите номер администратора для удаления. Всего администраторов: " << adminAmount << std::endl;
+	std::cin >> number;
+	if (number < 1 || number > adminAmount)
+	{
+		std::cout << "Таких администраторов не существует" << std::endl;
+		return admin;
+	}
+	for (int i = number - 1; i < adminAmount - 1; i++)
+	{
+		admin[i] = admin[i + 1];
+	}
+	adminAmount--;
+	saveStruct(adminFile, admin, adminAmount);
+	return admin;
+}
+
+void findTripNumber()
+{
+	int number;
+	std::cout << "Введите номер рейса: " << std::endl;
+	std::cin >> number;
+	for (int i = 0; i < tripAmount; i++)
+	{
+		if (number == trip[i].numberBusTrip)
+		{
+			printSomeTrip(i);
+		}
+	}
+}
+
+void findBusType()
+{
+	char colour[20], size[20];
+	std::cout << "Введите тип автобуса (цвет): " << std::endl;
+	std::cin >> colour;
+	std::cout << "Введите тип автобуса (размер): " << std::endl;
+	std::cin >> size;
+	for (int i = 0; i < tripAmount; i++)
+	{
+		if (!strcmp(colour, trip[i].type.colour) && !strcmp(size, trip[i].type.size))
+		{
+			printSomeTrip(i);
+		}
+	}
+}
+
+void findEarlierTrip()
+{
+	char city[20], time[20];
+	std::cout << "Введите пункт назначения: " << std::endl;
+	std::cin >> city;
+	std::cout << "Введите время отправления (в формате 00:00): " << std::endl;
+	std::cin >> time;
+	for (int i = 0; i < tripAmount; i++)
+	{
+		if (!strcmp(city, trip[i].destination) && strcmp(time, trip[i].departureTime) > 0)
+		{
+			printSomeTrip(i);
+		}
+	}
+}
+
+void printSomeTrip(int i)
+{
+	if (i < 0 || i > tripAmount) return;
+	std::cout <<
+		i + 1 << " Номер рейса: " << trip[i].numberBusTrip << std::endl <<
+		i + 1 << " Тип автобуса (цвет): " << trip[i].type.colour << std::endl <<
+		i + 1 << " Тип автобуса (размер): " << trip[i].type.size << std::endl <<
+		i + 1 << " Путь назначения: " << trip[i].destination << std::endl <<
+		i + 1 << " Время отправления: " << trip[i].departureTime << std::endl <<
+		i + 1 << " Время прибытия: " << trip[i].arrivalTime << std::endl;
+}
+
